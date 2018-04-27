@@ -1,0 +1,6 @@
+[package]
+name = "omoikane"
+version = "0.1.0"
+authors = ["Adrien Bougouin <adrien.bougouin@gmail.com>"]
+
+[dependencies]
