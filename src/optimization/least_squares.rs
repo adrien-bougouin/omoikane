@@ -59,5 +59,127 @@ where F: ParametricFunction {
 
 #[cfg(test)]
 mod tests {
-    // TODO
+    // TODO: move to integration tests???
+    mod linear_function {
+        use optimization::least_squares::compute_error;
+        use optimization::ParametricFunction;
+        use optimization::LinearFunction;
+
+        #[test]
+        fn compute_error_0() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = 1 + 2x
+            function.set_parameters(vector!(1.0, 2.0));
+
+            // f(2) = 5
+            assert_eq!(compute_error(&function, &vector!(2.0), 5.0), 0.0);
+        }
+
+        #[test]
+        fn compute_error_1() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = 1 + 2x
+            function.set_parameters(vector!(1.0, 2.0));
+
+            // f(2) = 5
+            assert_eq!(compute_error(&function, &vector!(2.0), 4.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 6.0), 1.0);
+        }
+
+        #[test]
+        fn compute_error_squares() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = 1 + 2x
+            function.set_parameters(vector!(1.0, 2.0));
+
+            // f(2) = 5
+            assert_eq!(compute_error(&function, &vector!(2.0), 3.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 7.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 2.0), 9.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 8.0), 9.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 16.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 9.0), 16.0);
+        }
+
+        #[test]
+        fn compute_error_with_fx_equal_0() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = 0
+            function.set_parameters(vector!(0.0, 0.0));
+
+            assert_eq!(compute_error(&function, &vector!(-3.0), 2.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(-2.0), 1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(-1.0), 0.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 0.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 2.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(1.0), 0.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(3.0), 2.0), 4.0);
+        }
+
+        #[test]
+        fn compute_error_with_fx_equal_minus_1() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = 1
+            function.set_parameters(vector!(-1.0, 0.0));
+
+            assert_eq!(compute_error(&function, &vector!(-3.0), -3.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(-2.0), -2.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(-1.0), -1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), -1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), -2.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), -3.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(1.0), -1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), -2.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(3.0), -3.0), 4.0);
+        }
+
+        #[test]
+        fn compute_error_with_fx_equal_1() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = 1
+            function.set_parameters(vector!(1.0, 0.0));
+
+            assert_eq!(compute_error(&function, &vector!(-3.0), 3.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(-2.0), 2.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(-1.0), 1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 2.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 3.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(1.0), 1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 2.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(3.0), 3.0), 4.0);
+        }
+
+        #[test]
+        fn compute_error_with_fx_equal_x() {
+            let mut function = LinearFunction::new(1);
+
+            // f(x) = x
+            function.set_parameters(vector!(0.0, 1.0));
+
+            assert_eq!(compute_error(&function, &vector!(-3.0), -5.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(-3.0), -1.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(-2.0), -3.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(-2.0), -1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(-1.0), -1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 0.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), -1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), -2.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(0.0), 2.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(1.0), 1.0), 0.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(2.0), 3.0), 1.0);
+            assert_eq!(compute_error(&function, &vector!(3.0), 1.0), 4.0);
+            assert_eq!(compute_error(&function, &vector!(3.0), 5.0), 4.0);
+        }
+    }
 }

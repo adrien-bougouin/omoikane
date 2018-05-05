@@ -2,6 +2,7 @@ use rulinalg::vector::Vector;
 
 use super::ParametricFunction;
 
+// FIXME: does not seem to converge
 pub fn gradient_descent_fit<F>(dataset: &Vec<(Vector<f64>, f64)>,
                                parametric_function: &mut F,
                                compute_error_average: &Fn(&F, &Vec<(Vector<f64>, f64)>) -> f64,

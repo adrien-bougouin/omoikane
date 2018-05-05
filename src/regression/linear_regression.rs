@@ -30,6 +30,7 @@ impl Model<Vector<f64>, f64> for LinearRegressionModel {
         if input_size > 0 {
             let mut function = LinearFunction::new(input_size);
 
+            // TODO: move num_iterations and learning_rate hyperparameters as LinearRegressionModel properties
             least_squares_fit(&mut function, dataset, 1000, 0.0001);
             println!("f(x) = {:.4} + {:.4}x", function.parameters().data().as_slice()[0], function.parameters().data().as_slice()[1]);
             self.linear_function = Some(function);
