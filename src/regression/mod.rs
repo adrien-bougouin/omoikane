@@ -1,1 +1,3 @@
-pub mod linear_regression;
+mod linear_regression;
+
+pub use self::linear_regression::LinearRegressionModel;
