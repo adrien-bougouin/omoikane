@@ -5,3 +5,6 @@ authors = ["Adrien Bougouin <adrien.bougouin@gmail.com>"]
 
 [dependencies]
 rulinalg = "0.4.2"
+
+[dev-dependencies]
+approx = "0.1.1"

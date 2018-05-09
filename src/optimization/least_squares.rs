@@ -59,127 +59,159 @@ where F: ParametricFunction {
 
 #[cfg(test)]
 mod tests {
-    // TODO: move to integration tests???
-    mod linear_function {
-        use optimization::least_squares::compute_error;
-        use optimization::ParametricFunction;
-        use optimization::LinearFunction;
+    use std::f64;
 
-        #[test]
-        fn compute_error_0() {
-            let mut function = LinearFunction::new(1);
+    use optimization::ParametricFunction;
+    use optimization::LinearFunction;
 
-            // f(x) = 1 + 2x
-            function.set_parameters(vector!(1.0, 2.0));
+    use super::compute_error;
+    use super::compute_error_average;
+    use super::compute_error_gradients;
 
-            // f(2) = 5
-            assert_eq!(compute_error(&function, &vector!(2.0), 5.0), 0.0);
-        }
+    fn build_test_function() -> LinearFunction {
+        let mut function = LinearFunction::new(1);
 
-        #[test]
-        fn compute_error_1() {
-            let mut function = LinearFunction::new(1);
+        // f(x) = x
+        function.set_parameters(vector!(0.0, 1.0));
 
-            // f(x) = 1 + 2x
-            function.set_parameters(vector!(1.0, 2.0));
+        function
+    }
 
-            // f(2) = 5
-            assert_eq!(compute_error(&function, &vector!(2.0), 4.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 6.0), 1.0);
-        }
+    #[test]
+    fn compute_error_0() {
+        let function = build_test_function();
 
-        #[test]
-        fn compute_error_squares() {
-            let mut function = LinearFunction::new(1);
+        assert_eq!(compute_error(&function, &vector!(-3.0), -3.0), 0.0);
+        assert_eq!(compute_error(&function, &vector!(3.0), 3.0), 0.0);
+    }
 
-            // f(x) = 1 + 2x
-            function.set_parameters(vector!(1.0, 2.0));
+    #[test]
+    fn compute_error_1() {
+        let function = build_test_function();
 
-            // f(2) = 5
-            assert_eq!(compute_error(&function, &vector!(2.0), 3.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 7.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 2.0), 9.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 8.0), 9.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 16.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 9.0), 16.0);
-        }
+        assert_eq!(compute_error(&function, &vector!(-2.0), -3.0), 1.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -1.0), 1.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 1.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 3.0), 1.0);
+    }
 
-        #[test]
-        fn compute_error_with_fx_equal_0() {
-            let mut function = LinearFunction::new(1);
+    #[test]
+    fn compute_error_squares() {
+        let function = build_test_function();
 
-            // f(x) = 0
-            function.set_parameters(vector!(0.0, 0.0));
+        assert_eq!(compute_error(&function, &vector!(-2.0), -4.0), 4.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), 0.0), 4.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -5.0), 9.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), 1.0), 9.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -6.0), 16.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), 2.0), 16.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 0.0), 4.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 4.0), 4.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), -1.0), 9.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 5.0), 9.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), -2.0), 16.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 6.0), 16.0);
+    }
 
-            assert_eq!(compute_error(&function, &vector!(-3.0), 2.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(-2.0), 1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(-1.0), 0.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 0.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 2.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(1.0), 0.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(3.0), 2.0), 4.0);
-        }
+    #[test]
+    fn compute_error_average_0() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(-0.33), -0.33),
+                           (vector!(1.0), 1.0),
+                           (vector!(0.0), 0.0),
+                           (vector!(4.2), 4.2),
+                           (vector!(13.37), 13.37),
+                           (vector!(3.14), 3.14),
+                           (vector!(1.33), 1.33));
 
-        #[test]
-        fn compute_error_with_fx_equal_minus_1() {
-            let mut function = LinearFunction::new(1);
+        assert_eq!(compute_error_average(&function, &dataset), 0.0);
+    }
 
-            // f(x) = 1
-            function.set_parameters(vector!(-1.0, 0.0));
+    #[test]
+    fn compute_error_average_1() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(-0.33), -1.33),
+                           (vector!(1.0), 2.0),
+                           (vector!(0.0), -1.0),
+                           (vector!(4.2), 5.2),
+                           (vector!(13.37), 12.37),
+                           (vector!(3.14), 2.14),
+                           (vector!(1.33), 0.33));
 
-            assert_eq!(compute_error(&function, &vector!(-3.0), -3.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(-2.0), -2.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(-1.0), -1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), -1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), -2.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), -3.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(1.0), -1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), -2.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(3.0), -3.0), 4.0);
-        }
+        assert_eq!(compute_error_average(&function, &dataset), 1.0);
+    }
 
-        #[test]
-        fn compute_error_with_fx_equal_1() {
-            let mut function = LinearFunction::new(1);
+    #[test]
+    fn compute_error_average_of_squares() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(0.0), -2.0),
+                           (vector!(1.0), 4.0),
+                           (vector!(0.0), -4.0),
+                           (vector!(4.0), 6.0),
+                           (vector!(13.0), 16.0),
+                           (vector!(3.0), 7.0),
+                           (vector!(1.0), 0.0));
 
-            // f(x) = 1
-            function.set_parameters(vector!(1.0, 0.0));
+        assert_eq!(compute_error_average(&function, &dataset), (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0) / 7.0);
+    }
 
-            assert_eq!(compute_error(&function, &vector!(-3.0), 3.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(-2.0), 2.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(-1.0), 1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 2.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 3.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(1.0), 1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 2.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(3.0), 3.0), 4.0);
-        }
+    #[test]
+    fn compute_error_gradients_with_error_average_0() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(-0.33), -0.33),
+                           (vector!(1.0), 1.0),
+                           (vector!(0.0), 0.0),
+                           (vector!(4.2), 4.2),
+                           (vector!(13.37), 13.37),
+                           (vector!(3.14), 3.14),
+                           (vector!(1.33), 1.33));
 
-        #[test]
-        fn compute_error_with_fx_equal_x() {
-            let mut function = LinearFunction::new(1);
+        assert_eq!(compute_error_gradients(&function, &dataset), vector!(0.0, 0.0));
+    }
 
-            // f(x) = x
-            function.set_parameters(vector!(0.0, 1.0));
+    #[test]
+    fn compute_error_gradient_with_error_average_1() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(-0.33), -1.33),
+                           (vector!(1.0), 2.0),
+                           (vector!(0.0), -1.0),
+                           (vector!(4.2), 5.2),
+                           (vector!(13.37), 12.37),
+                           (vector!(3.14), 2.14),
+                           (vector!(1.33), 0.33));
+        let gradients = compute_error_gradients(&function, &dataset).into_vec();
 
-            assert_eq!(compute_error(&function, &vector!(-3.0), -5.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(-3.0), -1.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(-2.0), -3.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(-2.0), -1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(-1.0), -1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 0.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), -1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), -2.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(0.0), 2.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(1.0), 1.0), 0.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(2.0), 3.0), 1.0);
-            assert_eq!(compute_error(&function, &vector!(3.0), 1.0), 4.0);
-            assert_eq!(compute_error(&function, &vector!(3.0), 5.0), 4.0);
-        }
+        assert_eq!(2, gradients.len());
+        assert_relative_eq!(gradients.as_slice()[0], -2.0, epsilon = f64::EPSILON);
+        assert_relative_eq!(
+            gradients.as_slice()[1],
+            -(2.0 / 7.0) * (-0.33 + 1.0 + 0.0 + 4.2 + 13.37 + 3.14 + 1.33),
+            epsilon = f64::EPSILON
+        );
+    }
+
+    #[test]
+    fn compute_error_gradients_with_error_squares() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(0.0), -2.0),
+                           (vector!(1.0), 4.0),
+                           (vector!(0.0), -4.0),
+                           (vector!(4.0), 6.0),
+                           (vector!(13.0), 16.0),
+                           (vector!(3.0), 7.0),
+                           (vector!(1.0), 0.0));
+        let gradients = compute_error_gradients(&function, &dataset).into_vec();
+
+        assert_eq!(2, gradients.len());
+        assert_relative_eq!(
+            gradients.as_slice()[0],
+            -(2.0 / 7.0) * (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0),
+            epsilon = f64::EPSILON
+        );
+        assert_relative_eq!(
+            gradients.as_slice()[1],
+            -(2.0 / 7.0) * (4.0 * 0.0 + 9.0 * 1.0 + 16.0 * 0.0 + 4.0 * 4.0 + 9.0 * 13.0 + 16.0 * 3.0 + 1.0 * 1.0),
+            epsilon = f64::EPSILON
+        );
     }
 }
