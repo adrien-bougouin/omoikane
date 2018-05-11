@@ -23,12 +23,10 @@ where F: ParametricFunction {
     let n = dataset.len() as f64;
     let mut gradients = vec![0.0; function.parameters().size()];
 
-    for ref labeled_data in dataset.iter() {
+    for &(ref x, y) in dataset.iter() {
         let previous_gradients = gradients;
-        let ref input = labeled_data.0;
-        let label = labeled_data.1;
-        let error = compute_error(function, input, label);
-        let parameter_gradients = function.parameter_gradients(input);
+        let error = compute_error(function, x, y);
+        let parameter_gradients = function.parameter_gradients(x);
 
         gradients = previous_gradients.iter()
                                       .zip(parameter_gradients.iter())
@@ -115,8 +113,8 @@ mod tests {
                            (vector!(1.0), 1.0),
                            (vector!(0.0), 0.0),
                            (vector!(4.2), 4.2),
-                           (vector!(13.37), 13.37),
-                           (vector!(3.14), 3.14),
+                           (vector!(13.36), 13.36),
+                           (vector!(3.13), 3.13),
                            (vector!(1.33), 1.33));
 
         assert_eq!(compute_error_average(&function, &dataset), 0.0);
@@ -129,8 +127,8 @@ mod tests {
                            (vector!(1.0), 2.0),
                            (vector!(0.0), -1.0),
                            (vector!(4.2), 5.2),
-                           (vector!(13.37), 12.37),
-                           (vector!(3.14), 2.14),
+                           (vector!(13.36), 12.36),
+                           (vector!(3.13), 2.13),
                            (vector!(1.33), 0.33));
 
         assert_eq!(compute_error_average(&function, &dataset), 1.0);
@@ -139,15 +137,16 @@ mod tests {
     #[test]
     fn compute_error_average_of_squares() {
         let function = build_test_function();
-        let dataset = vec!((vector!(0.0), -2.0),
+        let dataset = vec!((vector!(-0.33), -2.33),
                            (vector!(1.0), 4.0),
                            (vector!(0.0), -4.0),
-                           (vector!(4.0), 6.0),
-                           (vector!(13.0), 16.0),
-                           (vector!(3.0), 7.0),
-                           (vector!(1.0), 0.0));
+                           (vector!(4.2), 6.2),
+                           (vector!(13.36), 16.36),
+                           (vector!(3.13), 7.13),
+                           (vector!(1.33), 0.33));
 
-        assert_eq!(compute_error_average(&function, &dataset), (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0) / 7.0);
+        assert_relative_eq!(compute_error_average(&function, &dataset),
+                            (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0) / 7.0);
     }
 
     #[test]
@@ -157,11 +156,12 @@ mod tests {
                            (vector!(1.0), 1.0),
                            (vector!(0.0), 0.0),
                            (vector!(4.2), 4.2),
-                           (vector!(13.37), 13.37),
-                           (vector!(3.14), 3.14),
+                           (vector!(13.36), 13.36),
+                           (vector!(3.13), 3.13),
                            (vector!(1.33), 1.33));
 
-        assert_eq!(compute_error_gradients(&function, &dataset), vector!(0.0, 0.0));
+        assert_eq!(compute_error_gradients(&function, &dataset),
+                   vector!(0.0, 0.0));
     }
 
     #[test]
@@ -171,42 +171,36 @@ mod tests {
                            (vector!(1.0), 2.0),
                            (vector!(0.0), -1.0),
                            (vector!(4.2), 5.2),
-                           (vector!(13.37), 12.37),
-                           (vector!(3.14), 2.14),
+                           (vector!(13.36), 12.36),
+                           (vector!(3.13), 2.13),
                            (vector!(1.33), 0.33));
         let gradients = compute_error_gradients(&function, &dataset).into_vec();
 
         assert_eq!(2, gradients.len());
         assert_relative_eq!(gradients.as_slice()[0], -2.0, epsilon = f64::EPSILON);
-        assert_relative_eq!(
-            gradients.as_slice()[1],
-            -(2.0 / 7.0) * (-0.33 + 1.0 + 0.0 + 4.2 + 13.37 + 3.14 + 1.33),
-            epsilon = f64::EPSILON
-        );
+        assert_relative_eq!(gradients.as_slice()[1],
+                            -(2.0 / 7.0) * (-0.33 + 1.0 + 0.0 + 4.2 + 13.36 + 3.13 + 1.33),
+                            epsilon = f64::EPSILON);
     }
 
     #[test]
     fn compute_error_gradients_with_error_squares() {
         let function = build_test_function();
-        let dataset = vec!((vector!(0.0), -2.0),
+        let dataset = vec!((vector!(-0.33), -2.33),
                            (vector!(1.0), 4.0),
                            (vector!(0.0), -4.0),
-                           (vector!(4.0), 6.0),
-                           (vector!(13.0), 16.0),
-                           (vector!(3.0), 7.0),
-                           (vector!(1.0), 0.0));
+                           (vector!(4.2), 6.2),
+                           (vector!(13.36), 16.36),
+                           (vector!(3.13), 7.13),
+                           (vector!(1.33), 0.33));
         let gradients = compute_error_gradients(&function, &dataset).into_vec();
 
         assert_eq!(2, gradients.len());
-        assert_relative_eq!(
-            gradients.as_slice()[0],
-            -(2.0 / 7.0) * (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0),
-            epsilon = f64::EPSILON
-        );
-        assert_relative_eq!(
-            gradients.as_slice()[1],
-            -(2.0 / 7.0) * (4.0 * 0.0 + 9.0 * 1.0 + 16.0 * 0.0 + 4.0 * 4.0 + 9.0 * 13.0 + 16.0 * 3.0 + 1.0 * 1.0),
-            epsilon = f64::EPSILON
-        );
+        assert_relative_eq!(gradients.as_slice()[0],
+                            -(2.0 / 7.0) * (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0),
+                            epsilon = f64::EPSILON);
+        assert_relative_eq!(gradients.as_slice()[1],
+                            -(2.0 / 7.0) * (4.0 * -0.33 + 9.0 * 1.0 + 16.0 * 0.0 + 4.0 * 4.2 + 9.0 * 13.36 + 16.0 * 3.13 + 1.0 * 1.33),
+                            epsilon = f64::EPSILON);
     }
 }
