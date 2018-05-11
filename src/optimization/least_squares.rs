@@ -11,34 +11,29 @@ where F: ParametricFunction {
 fn compute_error_average<F>(function: &F, dataset: &Vec<(Vector<f64>, f64)>) -> f64
 where F: ParametricFunction {
     let n = dataset.len() as f64;
-    let mut squared_errors_sum = 0.0;
-    let data_iterator = dataset.iter();
+    let errors_sum = dataset.iter()
+                            .map(|&(ref x, y)| compute_error(function, x, y))
+                            .sum::<f64>();
 
-    for ref labeled_data in data_iterator {
-        squared_errors_sum += compute_error(function, &labeled_data.0, labeled_data.1);
-    }
-
-    squared_errors_sum / n
+    errors_sum / n
 }
 
 fn compute_error_gradients<F>(function: &F, dataset: &Vec<(Vector<f64>, f64)>) -> Vector<f64>
 where F: ParametricFunction {
     let n = dataset.len() as f64;
     let mut gradients = vec![0.0; function.parameters().size()];
-    let data_iterator = dataset.iter();
 
-    for ref labeled_data in data_iterator {
+    for ref labeled_data in dataset.iter() {
         let previous_gradients = gradients;
         let ref input = labeled_data.0;
         let label = labeled_data.1;
         let error = compute_error(function, input, label);
         let parameter_gradients = function.parameter_gradients(input);
-        let gradients_zip_iterator = previous_gradients.iter().zip(parameter_gradients.iter());
 
-        gradients = vec!();
-        for (gradient, parameter_gradient) in gradients_zip_iterator {
-            gradients.push(gradient + (-2.0 / n) * (error * parameter_gradient))
-        }
+        gradients = previous_gradients.iter()
+                                      .zip(parameter_gradients.iter())
+                                      .map(|(acc, g)| acc + (-2.0 / n) * (error * g))
+                                      .collect()
     }
 
     Vector::new(gradients)
