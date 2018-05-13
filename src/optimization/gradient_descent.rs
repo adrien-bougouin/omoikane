@@ -1,4 +1,5 @@
 use rulinalg::vector::Vector;
+use gnuplot::{Figure, AxesCommon, Color};
 
 use super::ParametricFunction;
 
@@ -22,6 +23,19 @@ where F: ParametricFunction {
 
         errors.push(compute_error_average(parametric_function, dataset));
         parametric_function.set_parameters(new_parameters);
+    }
+
+    // TODO: remove or debug mode
+    {
+        let x: Vec<u32> = (1..num_iterations).collect();
+        let ref y = errors;
+        let mut fg = Figure::new();
+        fg.set_terminal("png", "error.png")
+          .axes2d()
+          .set_x_label("Iteration", &[])
+          .set_y_label("Error", &[])
+          .lines(&x, y, &[Color("red")]);
+        fg.show();
     }
 
     errors

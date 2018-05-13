@@ -25,7 +25,7 @@ where F: ParametricFunction {
 
     for &(ref x, y) in dataset.iter() {
         let previous_gradients = gradients;
-        let error = compute_error(function, x, y);
+        let error = y - function.f(x);
         let parameter_gradients = function.parameter_gradients(x);
 
         gradients = previous_gradients.iter()
@@ -135,7 +135,7 @@ mod tests {
     }
 
     #[test]
-    fn compute_error_average_of_squares() {
+    fn compute_error_average_of_squared_errors() {
         let function = build_test_function();
         let dataset = vec!((vector!(-0.33), -2.33),
                            (vector!(1.0), 4.0),
@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn compute_error_gradients_with_error_average_0() {
+    fn compute_error_gradients_with_errors_0() {
         let function = build_test_function();
         let dataset = vec!((vector!(-0.33), -0.33),
                            (vector!(1.0), 1.0),
@@ -165,15 +165,15 @@ mod tests {
     }
 
     #[test]
-    fn compute_error_gradient_with_error_average_1() {
+    fn compute_error_gradient_with_errors_1() {
         let function = build_test_function();
-        let dataset = vec!((vector!(-0.33), -1.33),
+        let dataset = vec!((vector!(-0.33), 0.67),
                            (vector!(1.0), 2.0),
-                           (vector!(0.0), -1.0),
+                           (vector!(0.0), 1.0),
                            (vector!(4.2), 5.2),
-                           (vector!(13.36), 12.36),
-                           (vector!(3.13), 2.13),
-                           (vector!(1.33), 0.33));
+                           (vector!(13.36), 14.36),
+                           (vector!(3.13), 4.13),
+                           (vector!(1.33), 2.33));
         let gradients = compute_error_gradients(&function, &dataset).into_vec();
 
         assert_eq!(2, gradients.len());
@@ -184,7 +184,26 @@ mod tests {
     }
 
     #[test]
-    fn compute_error_gradients_with_error_squares() {
+    fn compute_error_gradient_with_errors_minus_1() {
+        let function = build_test_function();
+        let dataset = vec!((vector!(-0.33), -1.33),
+                           (vector!(1.0), 0.0),
+                           (vector!(0.0), -1.0),
+                           (vector!(4.2), 3.2),
+                           (vector!(13.36), 12.36),
+                           (vector!(3.13), 2.13),
+                           (vector!(1.33), 0.33));
+        let gradients = compute_error_gradients(&function, &dataset).into_vec();
+
+        assert_eq!(2, gradients.len());
+        assert_relative_eq!(gradients.as_slice()[0], 2.0, epsilon = f64::EPSILON);
+        assert_relative_eq!(gradients.as_slice()[1],
+                            -(2.0 / 7.0) * (0.33 + -1.0 + 0.0 + -4.2 + -13.36 + -3.13 + -1.33),
+                            epsilon = f64::EPSILON);
+    }
+
+    #[test]
+    fn compute_error_gradients_with_non_squared_errors() {
         let function = build_test_function();
         let dataset = vec!((vector!(-0.33), -2.33),
                            (vector!(1.0), 4.0),
@@ -197,10 +216,10 @@ mod tests {
 
         assert_eq!(2, gradients.len());
         assert_relative_eq!(gradients.as_slice()[0],
-                            -(2.0 / 7.0) * (4.0 + 9.0 + 16.0 + 4.0 + 9.0 + 16.0 + 1.0),
+                            -(2.0 / 7.0) * (-2.0 + 3.0 + -4.0 + 2.0 + 3.0 + 4.0 + -1.0),
                             epsilon = f64::EPSILON);
         assert_relative_eq!(gradients.as_slice()[1],
-                            -(2.0 / 7.0) * (4.0 * -0.33 + 9.0 * 1.0 + 16.0 * 0.0 + 4.0 * 4.2 + 9.0 * 13.36 + 16.0 * 3.13 + 1.0 * 1.33),
+                            -(2.0 / 7.0) * (-2.0 * -0.33 + 3.0 * 1.0 + -4.0 * 0.0 + 2.0 * 4.2 + 3.0 * 13.36 + 4.0 * 3.13 + -1.0 * 1.33),
                             epsilon = f64::EPSILON);
     }
 }

@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate rulinalg;
+extern crate gnuplot;
 
 pub mod optimization;
 pub mod regression;
