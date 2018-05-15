@@ -5,14 +5,14 @@ use super::gradient_descent_fit;
 
 fn compute_error<F>(function: &F, input: &Vector<f64>, y: f64) -> f64
 where F: ParametricFunction {
-    (y - function.f(input)).powi(2)
+    (y - function.f(input))
 }
 
 fn compute_error_average<F>(function: &F, dataset: &Vec<(Vector<f64>, f64)>) -> f64
 where F: ParametricFunction {
     let n = dataset.len() as f64;
     let errors_sum = dataset.iter()
-                            .map(|&(ref x, y)| compute_error(function, x, y))
+                            .map(|&(ref x, y)| compute_error(function, x, y).powi(2))
                             .sum::<f64>();
 
     errors_sum / n
@@ -25,7 +25,7 @@ where F: ParametricFunction {
 
     for &(ref x, y) in dataset.iter() {
         let previous_gradients = gradients;
-        let error = y - function.f(x);
+        let error = compute_error(function, x, y);
         let parameter_gradients = function.parameter_gradients(x);
 
         gradients = previous_gradients.iter()
@@ -79,31 +79,25 @@ mod tests {
     }
 
     #[test]
-    fn compute_error_1() {
+    fn compute_error_signed() {
         let function = build_test_function();
 
-        assert_eq!(compute_error(&function, &vector!(-2.0), -3.0), 1.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -3.0), -1.0);
         assert_eq!(compute_error(&function, &vector!(-2.0), -1.0), 1.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), 1.0), 1.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -4.0), -2.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), 0.0), 2.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -5.0), -3.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), 1.0), 3.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), -6.0), -4.0);
+        assert_eq!(compute_error(&function, &vector!(-2.0), 2.0), 4.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 1.0), -1.0);
         assert_eq!(compute_error(&function, &vector!(2.0), 3.0), 1.0);
-    }
-
-    #[test]
-    fn compute_error_squares() {
-        let function = build_test_function();
-
-        assert_eq!(compute_error(&function, &vector!(-2.0), -4.0), 4.0);
-        assert_eq!(compute_error(&function, &vector!(-2.0), 0.0), 4.0);
-        assert_eq!(compute_error(&function, &vector!(-2.0), -5.0), 9.0);
-        assert_eq!(compute_error(&function, &vector!(-2.0), 1.0), 9.0);
-        assert_eq!(compute_error(&function, &vector!(-2.0), -6.0), 16.0);
-        assert_eq!(compute_error(&function, &vector!(-2.0), 2.0), 16.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), 0.0), 4.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), 4.0), 4.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), -1.0), 9.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), 5.0), 9.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), -2.0), 16.0);
-        assert_eq!(compute_error(&function, &vector!(2.0), 6.0), 16.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 0.0), -2.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 4.0), 2.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), -1.0), -3.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 5.0), 3.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), -2.0), -4.0);
+        assert_eq!(compute_error(&function, &vector!(2.0), 6.0), 4.0);
     }
 
     #[test]
