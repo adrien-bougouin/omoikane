@@ -39,15 +39,15 @@ where F: ParametricFunction {
 
 pub fn least_squares_fit<F>(function: &mut F,
                             dataset: &Vec<(Vector<f64>, f64)>,
-                            num_iterations: u32,
-                            learning_rate: f64) -> Vec<f64>
+                            learning_rate: f64,
+                            max_iterations: u32) -> Vec<f64>
 where F: ParametricFunction {
     gradient_descent_fit(dataset,
                          function,
                          &compute_error_average,
                          &compute_error_gradients,
-                         num_iterations,
-                         learning_rate)
+                         learning_rate,
+                         max_iterations)
 }
 
 #[cfg(test)]

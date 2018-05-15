@@ -6,12 +6,16 @@ use optimization::LinearFunction;
 use optimization::least_squares_fit;
 
 pub struct LinearRegressionModel {
+    learning_rate: f64,
+    max_iterations: u32,
     linear_function: Option<LinearFunction>
 }
 
 impl LinearRegressionModel {
-    pub fn new() -> LinearRegressionModel {
+        pub fn new(learning_rate: f64, max_iterations: u32) -> LinearRegressionModel {
         LinearRegressionModel {
+            learning_rate,
+            max_iterations,
             linear_function: None
         }
     }
@@ -30,9 +34,8 @@ impl Model<Vector<f64>, f64> for LinearRegressionModel {
         if input_size > 0 {
             let mut function = LinearFunction::new(input_size);
 
-            // TODO: move num_iterations and learning_rate hyperparameters as LinearRegressionModel properties
-            least_squares_fit(&mut function, dataset, 10000, 0.0001);
-            println!("f(x) = {:.4} + {:.4}x", function.parameters().data().as_slice()[0], function.parameters().data().as_slice()[1]);
+            least_squares_fit(&mut function, dataset, self.learning_rate, self.max_iterations);
+
             self.linear_function = Some(function);
         }
     }

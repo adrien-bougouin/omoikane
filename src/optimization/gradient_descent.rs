@@ -3,17 +3,16 @@ use gnuplot::{Figure, AxesCommon, Color};
 
 use super::ParametricFunction;
 
-// FIXME: does not seem to converge
 pub fn gradient_descent_fit<F>(dataset: &Vec<(Vector<f64>, f64)>,
                                parametric_function: &mut F,
                                compute_error_average: &Fn(&F, &Vec<(Vector<f64>, f64)>) -> f64,
                                compute_error_gradients: &Fn(&F, &Vec<(Vector<f64>, f64)>) -> Vector<f64>,
-                               num_iterations: u32,
-                               learning_rate: f64) -> Vec<f64>
+                               learning_rate: f64,
+                               max_iterations: u32) -> Vec<f64>
 where F: ParametricFunction {
-    let mut errors = vec![];
+    let mut errors = vec!();
 
-    for _ in 1..num_iterations {
+    for _ in 1..max_iterations {
         let new_parameters = {
             let parameters = parametric_function.parameters();
             let gradients = compute_error_gradients(parametric_function, dataset);
@@ -27,7 +26,7 @@ where F: ParametricFunction {
 
     // TODO: remove or debug mode
     {
-        let x: Vec<u32> = (1..num_iterations).collect();
+        let x: Vec<u32> = (1..max_iterations).collect();
         let ref y = errors;
         let mut fg = Figure::new();
         fg.set_terminal("png", "error.png")
