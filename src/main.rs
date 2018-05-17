@@ -8,11 +8,12 @@ use gnuplot::{Figure, AxesCommon, Caption, Color};
 
 use omoikane::Model;
 use omoikane::regression::LinearRegressionModel;
+use omoikane::datasets::nist_strd::linear_regression::norris;
 
 fn main() {
-    let inputs = vec!(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
-    let labels = vec!(-2.0, -4.0, -6.0, -8.0, -10.0, -12.0);
-    let mut model = LinearRegressionModel::new(0.0001, 10000);
+    let inputs: Vec<f64> = norris().into_iter().map(|(x, _)| x.data().as_slice()[0]).collect();
+    let labels: Vec<f64> = norris().into_iter().map(|(_, y)| y).collect();
+    let mut model = LinearRegressionModel::new(0.000001, 200000);
     let mut figure = Figure::new();
 
     model.fit_supervised_dataset(&inputs.iter()
